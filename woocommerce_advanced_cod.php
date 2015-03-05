@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.0.0
+Version: 1.0.1
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -81,6 +81,14 @@ class WooCommerceCODAdvanced{
 							'desc_tip'		=> '0',
 							'options'       => array('0'=>0,'5'=>5,'10'=>10,'50'=>50,'100'=>100)
 						);
+						
+		$form_fields['cod_pincodes'] = array(
+							'title'			=> __('Pin codes to hide COD','askoracle'),
+							'type'			=> 'textarea',
+							'description'	=> __('Enter comma separated pin codes to hide COD on checkout.','askoracle'),
+							'default'		=> '',
+							'desc_tip'		=> '0',
+						);
 		return $form_fields;
 	}
 
@@ -94,6 +102,17 @@ class WooCommerceCODAdvanced{
 		{
 			$min_cod_amount = $settings['min_amount'];
 		}
+		
+		$cod_pincodes = trim($settings['cod_pincodes']);
+		if($cod_pincodes){
+			$cod_pincodes_arr = explode(',',$cod_pincodes);		
+			$customer_detail = WC()->session->get('customer');		
+			$shipping_postcode = $customer_detail['shipping_postcode'];
+			if($shipping_postcode && in_array($shipping_postcode,$cod_pincodes_arr)){
+				unset($gateways['cod']);
+			}
+		}
+		
 		$total = $woocommerce->cart->total;
 		if(!$total){$total = $woocommerce->cart->cart_contents_total;}
 		if($woocommerce->cart && $total<=$min_cod_amount){
