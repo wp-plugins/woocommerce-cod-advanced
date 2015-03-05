@@ -16,10 +16,11 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 <li>• COD advanced options. </li>
 <li>• Hide COD payment while checkout if minimum amount.</li>
 <li>• Extra charges if minimum amount.</li>
-<li>• Round up the total order amount</li>
-<li>• Round up factor of 5/10/50/100</li>
-<li>• Pin code to restrict the COD</li>
-<li>• Add the pin code and matched pin code user will not display the COD on checkout page</li>
+<li>• Round up the total order amount.</li>
+<li>• Round up factor of 5/10/50/100.</li>
+<li>• Postal/Pin code to restrict the COD.</li>
+<li>• Add the Postal/Pin code and matched pin code user will not display the COD on checkout page.</li>
+<li>• Exclude Product Category to hide COD if excluded category product is in your cart.</li>
 </ul>
 
 
@@ -36,9 +37,10 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 
 == Changelog ==
 
-= 1.0.2 =
-* Pin code option added to display COD on checkout page.
+= 1.0.1 =
+* Postal/Pin code option added to display COD on checkout page.
  -- so you should add the pin code and matched pin code user will not display the COD on checkout page.
+* Exclude Product Category to hide COD if excluded category product is in your cart.
 
 = 1.0.0 =
 * Fresh Public Release. 

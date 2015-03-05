@@ -39,7 +39,7 @@ class WooCommerceCODAdvanced{
 	
 	function adv_cod_woocommerce_update_options_payment_gateways_cod_fun($form_fields)
 	{
-
+		
 		$form_fields['min_amount'] = array(
 							'title'			=> __('Minimum cart amount to display','askoracle'),
 							'type'			=> 'text',
@@ -85,10 +85,26 @@ class WooCommerceCODAdvanced{
 		$form_fields['cod_pincodes'] = array(
 							'title'			=> __('Pin codes to hide COD','askoracle'),
 							'type'			=> 'textarea',
-							'description'	=> __('Enter comma separated pin codes to hide COD on checkout.','askoracle'),
+							'description'	=> __('Enter comma separated pin/postal codes to hide COD on checkout.','askoracle'),
 							'default'		=> '',
 							'desc_tip'		=> '0',
 						);
+		
+		
+		$cat_arr = array();
+		$categories = get_terms( 'product_cat', 'orderby=name&hide_empty=0' );
+		if ( $categories ) foreach ( $categories as $cat ) {
+			$cat_arr[esc_attr( $cat->term_id )]=esc_html( $cat->name );
+		}
+		$form_fields['exclude_cats'] = array(
+							'title'			=> __('Exclude categories','askoracle'),
+							'type'			=> 'multiselect',
+							'description'	=> __('Select categories to hide COD while category products is in the cart.','askoracle'),
+							'default'		=> '0',
+							'class'			=> 'wc-enhanced-select',
+							'options'       => $cat_arr
+						);
+		
 		return $form_fields;
 	}
 
@@ -96,7 +112,7 @@ class WooCommerceCODAdvanced{
 	function adv_cod_filter_gateways($gateways)
 	{
 		$min_cod_amount = 0;
-		global $woocommerce;
+		global $wpdb,$woocommerce;
 		$settings = get_option('woocommerce_cod_settings');
 		if(isset($settings) && $settings['min_amount'])
 		{
@@ -104,6 +120,21 @@ class WooCommerceCODAdvanced{
 		}
 		
 		$cod_pincodes = trim($settings['cod_pincodes']);
+		$exclude_cats = $settings['exclude_cats'];
+		if($exclude_cats){
+			$exclude_cats_str = implode(',',$exclude_cats);
+			$exclude_post_ids = $wpdb->get_col("select p.ID from $wpdb->posts p join $wpdb->term_relationships tr on tr.object_id=p.ID join $wpdb->term_taxonomy tt on tt.term_taxonomy_id=tr.term_taxonomy_id where tt.term_id in ($exclude_cats_str) and tt.taxonomy='product_cat' and p.post_type='product' and p.post_status='publish'");
+			$the_cart_contents = $woocommerce->cart->cart_contents;
+			foreach($the_cart_contents as $key => $prdarr)
+			{
+				if(in_array($prdarr['product_id'],$exclude_post_ids))
+				{
+					unset($gateways['cod']);
+				}
+			}
+			//print_r($post_ids);
+		}
+		
 		if($cod_pincodes){
 			$cod_pincodes_arr = explode(',',$cod_pincodes);		
 			$customer_detail = WC()->session->get('customer');		
