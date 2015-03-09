@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.0.1
+Version: 1.0.2
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -44,6 +44,14 @@ class WooCommerceCODAdvanced{
 							'title'			=> __('Minimum cart amount to display','askoracle'),
 							'type'			=> 'text',
 							'description'	=> __('Minimum cart amount to display the payment option on checkout page','askoracle'),
+							'default'		=> '0',
+							'desc_tip'		=> '0',
+						);
+		
+		$form_fields['max_amount'] = array(
+							'title'			=> __('Maximum cart amount to hide','askoracle'),
+							'type'			=> 'text',
+							'description'	=> __('Maximum cart amount to hide the payment option on checkout page','askoracle'),
 							'default'		=> '0',
 							'desc_tip'		=> '0',
 						);
@@ -112,12 +120,11 @@ class WooCommerceCODAdvanced{
 	function adv_cod_filter_gateways($gateways)
 	{
 		$min_cod_amount = 0;
+		$max_cod_amount = 0;
 		global $wpdb,$woocommerce;
 		$settings = get_option('woocommerce_cod_settings');
-		if(isset($settings) && $settings['min_amount'])
-		{
-			$min_cod_amount = $settings['min_amount'];
-		}
+		if(isset($settings) && $settings['min_amount']){$min_cod_amount = $settings['min_amount'];}
+		if(isset($settings) && $settings['max_amount']){$max_cod_amount = $settings['max_amount'];}
 		
 		$cod_pincodes = trim($settings['cod_pincodes']);
 		$exclude_cats = $settings['exclude_cats'];
@@ -146,7 +153,10 @@ class WooCommerceCODAdvanced{
 		
 		$total = $woocommerce->cart->total;
 		if(!$total){$total = $woocommerce->cart->cart_contents_total;}
-		if($woocommerce->cart && $total<=$min_cod_amount){
+		if($min_cod_amount && $woocommerce->cart && $total<=$min_cod_amount){
+			unset($gateways['cod']);
+		}
+		if($max_cod_amount && $woocommerce->cart && $total>=$max_cod_amount){
 			unset($gateways['cod']);
 		}
 		return $gateways;
