@@ -62,7 +62,7 @@ class WooCommerceCODAdvanced{
 		$form_fields['extra_charge_min_amount'] = array(
 							'title'			=> __('Minimum cart amount for extra charges','askoracle'),
 							'type'			=> 'text',
-							'description'	=> __('Minimum cart amount to display the payment option on checkout page','askoracle'),
+							'description'	=> __('Minimum cart amount to apply extra charge as per "Extra charges" settings.','askoracle'),
 							'default'		=> '0',
 							'desc_tip'		=> '0',
 						);				
@@ -93,13 +93,6 @@ class WooCommerceCODAdvanced{
 							'options'       => array('0'=>0,'5'=>5,'10'=>10,'50'=>50,'100'=>100)
 						);
 						
-		$form_fields['cod_pincodes'] = array(
-							'title'			=> __('Pin codes to hide COD','askoracle'),
-							'type'			=> 'textarea',
-							'description'	=> __('Enter comma separated pin/postal codes to hide COD on checkout.','askoracle'),
-							'default'		=> '',
-							'desc_tip'		=> '0',
-						);
 		
 		/**Category**/
 		$cat_arr = array();
@@ -173,7 +166,14 @@ class WooCommerceCODAdvanced{
 							'default'		=> '',
 							'desc_tip'		=> '0',
 						);
-						
+		
+		$form_fields['cod_pincodes'] = array(
+							'title'			=> __('Postal/Pin codes to hide COD','askoracle'),
+							'type'			=> 'textarea',
+							'description'	=> __('Enter comma separated postal/pin codes to hide COD on checkout.','askoracle'),
+							'default'		=> '',
+							'desc_tip'		=> '0',
+						);		
 		return $form_fields;
 	}
 
