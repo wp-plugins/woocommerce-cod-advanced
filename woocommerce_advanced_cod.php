@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.0.2
+Version: 1.0.3
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -39,6 +39,9 @@ class WooCommerceCODAdvanced{
 	
 	function adv_cod_woocommerce_update_options_payment_gateways_cod_fun($form_fields)
 	{
+		global $woocommerce;
+		$allowed_countries = $woocommerce->countries->get_allowed_countries();
+        asort( $allowed_countries );
 		
 		$form_fields['min_amount'] = array(
 							'title'			=> __('Minimum cart amount to display','askoracle'),
@@ -98,7 +101,7 @@ class WooCommerceCODAdvanced{
 							'desc_tip'		=> '0',
 						);
 		
-		
+		/**Category**/
 		$cat_arr = array();
 		$categories = get_terms( 'product_cat', 'orderby=name&hide_empty=0' );
 		if ( $categories ) foreach ( $categories as $cat ) {
@@ -113,6 +116,64 @@ class WooCommerceCODAdvanced{
 							'options'       => $cat_arr
 						);
 		
+		/**Country**/
+		$country_arr = array();
+			if ( $allowed_countries ) {
+			$selections = explode(',', $zone_fields['zone_country']);
+			foreach ( $allowed_countries as $key => $val ) {
+				//echo '<option value="'.$key.'" ' . selected( in_array( $key, $selections ), true, false ).'>' . $val . '</option>';
+				$country_arr[$key] = $val;
+				/*$allowed_states = $woocommerce->countries->get_states($key);
+				if( $allowed_states ) {
+					foreach ($allowed_states as $skey => $sval) {
+						$country_arr[$key.':'.$skey] = '&#009;' . $val . ' &mdash; ' . $sval;
+						//echo '<option value="'.$key.':'.$skey.'" ' . selected( in_array( $key.':'.$skey, $selections ), true, false ).'>&#009;' . $val . ' &mdash; ' . $sval . '</option>';
+					}
+				}*/
+			}
+		}
+		$form_fields['exclude_country'] = array(
+							'title'			=> __('Exclude Country','askoracle'),
+							'type'			=> 'multiselect',
+							'description'	=> __('Select country to hide COD while user has same country.','askoracle'),
+							'default'		=> '',
+							'class'			=> 'wc-enhanced-select',
+							'options'       => $country_arr
+						);
+		
+		/**States**/		
+		$state_arr = array();
+		if ( $woocommerce->countries->get_allowed_country_states() ) {
+			$selections = ( isset( $zone_fields['zone_except']['states'] ) ) ? explode(',', $zone_fields['zone_except']['states']) : array();
+			foreach ( $woocommerce->countries->get_allowed_country_states() as $key => $val ) {
+				if( count( $val ) ) {
+					$allowed_states = $woocommerce->countries->get_states($key);
+					if( $allowed_states ) {
+						foreach ($allowed_states as $skey => $sval) {
+							$state_arr[$key.':'.$skey]= '&#009;' . $allowed_countries[$key] . ' &mdash; ' . $sval;
+							//echo '<option value="'.$key.':'.$skey.'" ' . selected( in_array( $key.':'.$skey, $selections ), true, false ).'>&#009;' . $allowed_countries[$key] . ' &mdash; ' . $sval . '</option>';
+						}
+					}
+				}
+			}
+		}
+		$form_fields['exclude_states'] = array(
+							'title'			=> __('Exclude States/Provinces','askoracle'),
+							'type'			=> 'multiselect',
+							'description'	=> __('Select state to hide COD while user has same state.','askoracle'),
+							'default'		=> '',
+							'class'			=> 'wc-enhanced-select',
+							'options'       => $state_arr
+						);
+		
+		$form_fields['exclude_city'] = array(
+							'title'			=> __('Exclude Cities','askoracle'),
+							'type'			=> 'textarea',
+							'description'	=> __('Enter comma separated city name to hide COD while user has same city.','askoracle'),
+							'default'		=> '',
+							'desc_tip'		=> '0',
+						);
+						
 		return $form_fields;
 	}
 
@@ -121,13 +182,18 @@ class WooCommerceCODAdvanced{
 	{
 		$min_cod_amount = 0;
 		$max_cod_amount = 0;
+		$cod_enabled=1;
 		global $wpdb,$woocommerce;
 		$settings = get_option('woocommerce_cod_settings');
 		if(isset($settings) && $settings['min_amount']){$min_cod_amount = $settings['min_amount'];}
 		if(isset($settings) && $settings['max_amount']){$max_cod_amount = $settings['max_amount'];}
 		
 		$cod_pincodes = trim($settings['cod_pincodes']);
+		$exclude_country = $settings['exclude_country'];
+		$exclude_states = $settings['exclude_states'];
+		$exclude_city = trim($settings['exclude_city']);
 		$exclude_cats = $settings['exclude_cats'];
+		
 		if($exclude_cats){
 			$exclude_cats_str = implode(',',$exclude_cats);
 			$exclude_post_ids = $wpdb->get_col("select p.ID from $wpdb->posts p join $wpdb->term_relationships tr on tr.object_id=p.ID join $wpdb->term_taxonomy tt on tt.term_taxonomy_id=tr.term_taxonomy_id where tt.term_id in ($exclude_cats_str) and tt.taxonomy='product_cat' and p.post_type='product' and p.post_status='publish'");
@@ -137,28 +203,61 @@ class WooCommerceCODAdvanced{
 				if(in_array($prdarr['product_id'],$exclude_post_ids))
 				{
 					unset($gateways['cod']);
+					$cod_enabled=0;
 				}
 			}
-			//print_r($post_ids);
 		}
 		
-		if($cod_pincodes){
+		if($cod_enabled && $cod_pincodes){
 			$cod_pincodes_arr = explode(',',$cod_pincodes);		
 			$customer_detail = WC()->session->get('customer');		
 			$shipping_postcode = $customer_detail['shipping_postcode'];
 			if($shipping_postcode && in_array($shipping_postcode,$cod_pincodes_arr)){
 				unset($gateways['cod']);
+				$cod_enabled=0;
+			}
+		}
+		
+		if($cod_enabled && $exclude_country){
+			$customer_detail = WC()->session->get('customer');
+			$shipping_country = $customer_detail['shipping_country'];
+			if($shipping_country && in_array($shipping_country,$exclude_country)){
+				unset($gateways['cod']);
+				$cod_enabled=0;
+			}
+		}
+		
+		if($cod_enabled && $exclude_states){
+			$customer_detail = WC()->session->get('customer');
+			$shipping_state = trim($customer_detail['shipping_country'].':'.$customer_detail['shipping_state']);
+			if($shipping_state && in_array($shipping_state,$exclude_states)){
+				unset($gateways['cod']);
+				$cod_enabled=0;
+			}
+		}
+		if($cod_enabled && $exclude_city){
+			$exclude_city = strtolower($exclude_city);
+			$exclude_city_arr = explode(',',$exclude_city);
+			$customer_detail = WC()->session->get('customer');		
+			$shipping_city = strtolower(trim($customer_detail['shipping_city']));
+			if($exclude_city_arr && in_array($shipping_city,$exclude_city_arr)){
+				unset($gateways['cod']);
+				$cod_enabled=0;
 			}
 		}
 		
 		$total = $woocommerce->cart->total;
 		if(!$total){$total = $woocommerce->cart->cart_contents_total;}
-		if($min_cod_amount && $woocommerce->cart && $total<=$min_cod_amount){
+		if($cod_enabled && $min_cod_amount && $woocommerce->cart && $total<=$min_cod_amount){
 			unset($gateways['cod']);
+			$cod_enabled=0;
 		}
-		if($max_cod_amount && $woocommerce->cart && $total>=$max_cod_amount){
+		
+		if($cod_enabled && $max_cod_amount && $woocommerce->cart && $total>=$max_cod_amount){
 			unset($gateways['cod']);
+			$cod_enabled=0;
 		}
+		
 		return $gateways;
 	}
 

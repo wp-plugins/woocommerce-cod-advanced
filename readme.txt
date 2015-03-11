@@ -21,6 +21,9 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 <li>Postal/Pin code to restrict the COD.</li>
 <li>Add the Postal/Pin code and matched pin code user will not display the COD on checkout page.</li>
 <li>Exclude Product Category to hide COD if excluded category product is in your cart.</li>
+<li>Country to restrict the COD.</li>
+<li>States/Provinces to restrict the COD.</li>
+<li>City to restrict the COD.</li>
 </ul>
 
 
@@ -36,6 +39,11 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 
 
 == Changelog ==
+
+= 1.0.3 =
+* Country to restrict the COD.
+* States/Provinces to restrict the COD.
+* City to restrict the COD.
 
 = 1.0.2 =
 * Hide COD for maximum cart total amount - Option added.
