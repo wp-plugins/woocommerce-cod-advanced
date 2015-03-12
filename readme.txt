@@ -40,6 +40,12 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 
 == Changelog ==
 
+= 1.0.4 =
+* Display the COD for specific countries or other countries option like (include country or exclude country).
+* Display the COD for specific states or other states option like (include states or exclude states).
+* Display the COD for specific cities or other cities option like (include cities or exclude cities).
+* Display the COD for specific postal code or other postal code option like (include postal code or exclude postal code).
+
 = 1.0.3 =
 * Country to restrict the COD.
 * States/Provinces to restrict the COD.

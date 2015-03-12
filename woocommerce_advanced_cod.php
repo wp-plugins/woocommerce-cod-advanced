@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.0.3
+Version: 1.0.4
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -43,6 +43,12 @@ class WooCommerceCODAdvanced{
 		$allowed_countries = $woocommerce->countries->get_allowed_countries();
         asort( $allowed_countries );
 		
+		$form_fields['cod_adv_title'] = array(
+							'title'			=> __('WooCommerce Advanced COD Plugin Settings','askoracle'),
+							'type'			=> 'title',
+							'default'  		=> 'no',
+						);
+						
 		$form_fields['min_amount'] = array(
 							'title'			=> __('Minimum cart amount to display','askoracle'),
 							'type'			=> 'text',
@@ -125,8 +131,8 @@ class WooCommerceCODAdvanced{
 				}*/
 			}
 		}
-		$form_fields['exclude_country'] = array(
-							'title'			=> __('Exclude Country','askoracle'),
+		$form_fields['country'] = array(
+							'title'			=> __('Select Country','askoracle'),
 							'type'			=> 'multiselect',
 							'description'	=> __('Select country to hide COD while user has same country.','askoracle'),
 							'default'		=> '',
@@ -134,6 +140,18 @@ class WooCommerceCODAdvanced{
 							'options'       => $country_arr
 						);
 		
+		$form_fields['in_ex_country'] = array(
+							'title'			=> __('Country include/exclude?','askoracle'),
+							'type'			=> 'select',
+							'description'	=> __('Select country include/exclude to display/hide COD while user have same.','askoracle'),
+							'default'  		=> 'no',
+							'options'  => array(
+								'include' => __('Display COD if user is from above country', 'askoracle' ),
+								'exclude'  => __('Hide COD if user is from above country', 'askoracle' )
+							),	
+						);
+		
+
 		/**States**/		
 		$state_arr = array();
 		if ( $woocommerce->countries->get_allowed_country_states() ) {
@@ -150,8 +168,8 @@ class WooCommerceCODAdvanced{
 				}
 			}
 		}
-		$form_fields['exclude_states'] = array(
-							'title'			=> __('Exclude States/Provinces','askoracle'),
+		$form_fields['states'] = array(
+							'title'			=> __('Select States/Provinces','askoracle'),
 							'type'			=> 'multiselect',
 							'description'	=> __('Select state to hide COD while user has same state.','askoracle'),
 							'default'		=> '',
@@ -159,21 +177,55 @@ class WooCommerceCODAdvanced{
 							'options'       => $state_arr
 						);
 		
-		$form_fields['exclude_city'] = array(
-							'title'			=> __('Exclude Cities','askoracle'),
+		$form_fields['in_ex_states'] = array(
+							'title'			=> __('States/Provinces include/exclude?','askoracle'),
+							'type'			=> 'select',
+							'description'	=> __('Select States/Provinces include/exclude to display/hide COD while user have same.','askoracle'),
+							'default'  		=> 'no',
+							'options'  => array(
+								'include' => __('Display COD if user is from above state', 'askoracle' ),
+								'exclude'  => __('Hide COD if user is from above state', 'askoracle' )
+							),	
+						);
+						
+		$form_fields['city'] = array(
+							'title'			=> __('Enter Cities','askoracle'),
 							'type'			=> 'textarea',
 							'description'	=> __('Enter comma separated city name to hide COD while user has same city.','askoracle'),
 							'default'		=> '',
 							'desc_tip'		=> '0',
 						);
 		
+		$form_fields['in_ex_city'] = array(
+							'title'			=> __('City include/exclude?','askoracle'),
+							'type'			=> 'select',
+							'description'	=> __('Select City include/exclude to display/hide COD while user have same.','askoracle'),
+							'default'  		=> 'no',
+							'options'  => array(
+								'include' => __('Display COD if user is from above city', 'askoracle' ),
+								'exclude'  => __('Hide COD if user is from above city', 'askoracle' )
+							),	
+						);
+						
 		$form_fields['cod_pincodes'] = array(
 							'title'			=> __('Postal/Pin codes to hide COD','askoracle'),
 							'type'			=> 'textarea',
 							'description'	=> __('Enter comma separated postal/pin codes to hide COD on checkout.','askoracle'),
 							'default'		=> '',
 							'desc_tip'		=> '0',
-						);		
+						);
+		
+		$form_fields['in_ex_pincode'] = array(
+							'title'			=> __('Postal/Pin code include/exclude?','askoracle'),
+							'type'			=> 'select',
+							'description'	=> __('Select Postal/Pin code include/exclude to display/hide COD while user have same.','askoracle'),
+							'default'  		=> 'no',
+							'options'  => array(
+								'include' => __('Display COD if user is from above postal code', 'askoracle' ),
+								'exclude'  => __('Hide COD if user is from above postal code', 'askoracle' )
+							),	
+						);
+						
 		return $form_fields;
 	}
 
@@ -188,11 +240,15 @@ class WooCommerceCODAdvanced{
 		if(isset($settings) && $settings['min_amount']){$min_cod_amount = $settings['min_amount'];}
 		if(isset($settings) && $settings['max_amount']){$max_cod_amount = $settings['max_amount'];}
 		
+		$exclude_country = $settings['country'];
+		$in_ex_country = $settings['in_ex_country'];
+		$exclude_states = $settings['states'];
+		$in_ex_states = $settings['in_ex_states'];
+		$exclude_city = trim($settings['city']);
+		$in_ex_city = $settings['in_ex_city'];
 		$cod_pincodes = trim($settings['cod_pincodes']);
-		$exclude_country = $settings['exclude_country'];
-		$exclude_states = $settings['exclude_states'];
-		$exclude_city = trim($settings['exclude_city']);
-		$exclude_cats = $settings['exclude_cats'];
+		$in_ex_pincode = $settings['in_ex_pincode'];
+		$exclude_cats = $settings['exclude_cats'];		   
 		
 		if($exclude_cats){
 			$exclude_cats_str = implode(',',$exclude_cats);
@@ -208,29 +264,27 @@ class WooCommerceCODAdvanced{
 			}
 		}
 		
-		if($cod_enabled && $cod_pincodes){
-			$cod_pincodes_arr = explode(',',$cod_pincodes);		
-			$customer_detail = WC()->session->get('customer');		
-			$shipping_postcode = $customer_detail['shipping_postcode'];
-			if($shipping_postcode && in_array($shipping_postcode,$cod_pincodes_arr)){
-				unset($gateways['cod']);
-				$cod_enabled=0;
-			}
-		}
 		
 		if($cod_enabled && $exclude_country){
 			$customer_detail = WC()->session->get('customer');
 			$shipping_country = $customer_detail['shipping_country'];
-			if($shipping_country && in_array($shipping_country,$exclude_country)){
+			if($shipping_country && $in_ex_country=='include' && !in_array($shipping_country,$exclude_country)){
 				unset($gateways['cod']);
 				$cod_enabled=0;
-			}
+			}else			
+			if($shipping_country && $in_ex_country=='exclude' && in_array($shipping_country,$exclude_country)){
+				unset($gateways['cod']);
+				$cod_enabled=0;
+			}			
 		}
 		
 		if($cod_enabled && $exclude_states){
 			$customer_detail = WC()->session->get('customer');
 			$shipping_state = trim($customer_detail['shipping_country'].':'.$customer_detail['shipping_state']);
-			if($shipping_state && in_array($shipping_state,$exclude_states)){
+			if($shipping_state && $in_ex_states=='include' && !in_array($shipping_state,$exclude_states)){
+				unset($gateways['cod']);
+				$cod_enabled=0;
+			}elseif($shipping_state && $in_ex_states=='exclude' && in_array($shipping_state,$exclude_states)){
 				unset($gateways['cod']);
 				$cod_enabled=0;
 			}
@@ -240,7 +294,23 @@ class WooCommerceCODAdvanced{
 			$exclude_city_arr = explode(',',$exclude_city);
 			$customer_detail = WC()->session->get('customer');		
 			$shipping_city = strtolower(trim($customer_detail['shipping_city']));
-			if($exclude_city_arr && in_array($shipping_city,$exclude_city_arr)){
+			if($exclude_city_arr && $in_ex_city=='include' && !in_array($shipping_city,$exclude_city_arr)){
+				unset($gateways['cod']);
+				$cod_enabled=0;
+			}elseif($exclude_city_arr && $in_ex_city=='exclude' && in_array($shipping_city,$exclude_city_arr)){
+				unset($gateways['cod']);
+				$cod_enabled=0;
+			}
+		}
+		
+		if($cod_enabled && $cod_pincodes){
+			$cod_pincodes_arr = explode(',',$cod_pincodes);		
+			$customer_detail = WC()->session->get('customer');		
+			$shipping_postcode = $customer_detail['shipping_postcode'];
+			if($shipping_postcode && $in_ex_city=='include' && !in_array($shipping_postcode,$cod_pincodes_arr)){
+				unset($gateways['cod']);
+				$cod_enabled=0;
+			}elseif($shipping_postcode && $in_ex_city=='exclude' && in_array($shipping_postcode,$cod_pincodes_arr)){
 				unset($gateways['cod']);
 				$cod_enabled=0;
 			}
