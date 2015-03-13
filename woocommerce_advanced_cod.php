@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.0.4
+Version: 1.0.5
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -22,8 +22,16 @@ class WooCommerceCODAdvanced{
 		add_filter('woocommerce_available_payment_gateways',array($this,'adv_cod_filter_gateways'));
 		add_action( 'woocommerce_calculate_totals', array($this,'adv_cod_calculate_totals'), 9, 1 );
 		add_action( 'wp_head', array($this,'adv_cod_wp_header'), 99 );
+		
+		global $woocommerce;
+		if(is_ajax() && isset($_POST['action']) && $_POST['action'] == 'woocommerce_update_order_review'){
+			add_filter('woocommerce_available_payment_gateways',array($this,'adv_cod_filter_gateways'));	
+		}	
     }
 	
+	/****************************
+	COD header
+	****************************/
 	function adv_cod_wp_header()
 	{
 	?>
@@ -37,6 +45,9 @@ class WooCommerceCODAdvanced{
 	<?php
 	}
 	
+	/****************************
+	COD admin options
+	****************************/
 	function adv_cod_woocommerce_update_options_payment_gateways_cod_fun($form_fields)
 	{
 		global $woocommerce;
@@ -66,9 +77,9 @@ class WooCommerceCODAdvanced{
 						);
 						
 		$form_fields['extra_charge_min_amount'] = array(
-							'title'			=> __('Minimum cart amount for extra charges','askoracle'),
+							'title'			=> __('Minimum cart amount for free COD','askoracle'),
 							'type'			=> 'text',
-							'description'	=> __('Minimum cart amount to apply extra charge as per "Extra charges" settings.','askoracle'),
+							'description'	=> __('Maximum cart amount to apply extra charge as per "Extra charges" settings.','askoracle'),
 							'default'		=> '0',
 							'desc_tip'		=> '0',
 						);				
@@ -230,6 +241,9 @@ class WooCommerceCODAdvanced{
 	}
 
 	
+	/****************************
+	COD filter show/hide COD
+	****************************/
 	function adv_cod_filter_gateways($gateways)
 	{
 		$min_cod_amount = 0;
@@ -264,10 +278,19 @@ class WooCommerceCODAdvanced{
 			}
 		}
 		
+		global $woocommerce;
+		if(is_ajax() && isset($_POST['action']) && $_POST['action'] == 'woocommerce_update_order_review'){
+			$customer_detail = $_POST;
+		}else{
+			$customer_detail = WC()->session->get('customer');
+		}
 		
 		if($cod_enabled && $exclude_country){
-			$customer_detail = WC()->session->get('customer');
-			$shipping_country = $customer_detail['shipping_country'];
+			if($customer_detail['s_country']){
+				$shipping_country = $customer_detail['s_country'];
+			}else{
+				$shipping_country = $customer_detail['shipping_country'];
+			}
 			if($shipping_country && $in_ex_country=='include' && !in_array($shipping_country,$exclude_country)){
 				unset($gateways['cod']);
 				$cod_enabled=0;
@@ -279,8 +302,12 @@ class WooCommerceCODAdvanced{
 		}
 		
 		if($cod_enabled && $exclude_states){
-			$customer_detail = WC()->session->get('customer');
-			$shipping_state = trim($customer_detail['shipping_country'].':'.$customer_detail['shipping_state']);
+			if($customer_detail['s_country'] && $customer_detail['s_state']){
+				$shipping_state = $customer_detail['s_country'].':'.$customer_detail['s_state'];
+			}else{
+				$shipping_state = trim($customer_detail['shipping_country'].':'.$customer_detail['shipping_state']);
+			}
+			
 			if($shipping_state && $in_ex_states=='include' && !in_array($shipping_state,$exclude_states)){
 				unset($gateways['cod']);
 				$cod_enabled=0;
@@ -292,8 +319,12 @@ class WooCommerceCODAdvanced{
 		if($cod_enabled && $exclude_city){
 			$exclude_city = strtolower($exclude_city);
 			$exclude_city_arr = explode(',',$exclude_city);
-			$customer_detail = WC()->session->get('customer');		
-			$shipping_city = strtolower(trim($customer_detail['shipping_city']));
+			if($customer_detail['s_city']){
+				$shipping_city = strtolower(trim($customer_detail['s_city']));
+			}else{
+				$shipping_city = strtolower(trim($customer_detail['shipping_city']));
+			}	
+			
 			if($exclude_city_arr && $in_ex_city=='include' && !in_array($shipping_city,$exclude_city_arr)){
 				unset($gateways['cod']);
 				$cod_enabled=0;
@@ -305,8 +336,11 @@ class WooCommerceCODAdvanced{
 		
 		if($cod_enabled && $cod_pincodes){
 			$cod_pincodes_arr = explode(',',$cod_pincodes);		
-			$customer_detail = WC()->session->get('customer');		
-			$shipping_postcode = $customer_detail['shipping_postcode'];
+			if($customer_detail['s_city']){
+				$shipping_postcode = trim($customer_detail['s_postcode']);
+			}else{
+				$shipping_postcode = trim($customer_detail['shipping_postcode']);
+			}			
 			if($shipping_postcode && $in_ex_city=='include' && !in_array($shipping_postcode,$cod_pincodes_arr)){
 				unset($gateways['cod']);
 				$cod_enabled=0;
@@ -331,7 +365,9 @@ class WooCommerceCODAdvanced{
 		return $gateways;
 	}
 
-	
+	/****************************
+	COD calculate Totals
+	****************************/
 	public function adv_cod_calculate_totals( $totals ) {
 		
 		$available_gateways = WC()->payment_gateways->get_available_payment_gateways();
@@ -371,7 +407,10 @@ class WooCommerceCODAdvanced{
 		}
 		return $totals;
 	}
-
+	
+	/****************************
+	COD extra charge
+	****************************/
 	function adv_cod_add_payment_gateway_extra_charges_row(){
 		?>
 		<tr class="payment-extra-charge">

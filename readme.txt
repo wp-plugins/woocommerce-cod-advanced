@@ -40,6 +40,10 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 
 == Changelog ==
 
+= 1.0.5 =
+* Checkout page - on change of country, state , city or pincode -- COD advanced plugin condition not working - SOLVED
+
+
 = 1.0.4 =
 * Display the COD for specific countries or other countries option like (include country or exclude country).
 * Display the COD for specific states or other states option like (include states or exclude states).
