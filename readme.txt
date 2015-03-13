@@ -40,8 +40,12 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 
 == Changelog ==
 
+= 1.0.6 =
+* PHP syntax  - Error SOLVED
+
+
 = 1.0.5 =
-* Checkout page - on change of country, state , city or pincode -- COD advanced plugin condition not working - SOLVED
+* Checkout page - on change of country, state , city or pincode -- COD advanced plugin condition not working - Error SOLVED
 
 
 = 1.0.4 =

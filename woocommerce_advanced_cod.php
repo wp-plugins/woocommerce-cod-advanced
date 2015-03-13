@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.0.5
+Version: 1.0.6
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -24,7 +24,7 @@ class WooCommerceCODAdvanced{
 		add_action( 'wp_head', array($this,'adv_cod_wp_header'), 99 );
 		
 		global $woocommerce;
-		if(is_ajax() && isset($_POST['action']) && $_POST['action'] == 'woocommerce_update_order_review'){
+		if(isset($_POST['action']) && $_POST['action'] == 'woocommerce_update_order_review'){
 			add_filter('woocommerce_available_payment_gateways',array($this,'adv_cod_filter_gateways'));	
 		}	
     }
@@ -279,7 +279,7 @@ class WooCommerceCODAdvanced{
 		}
 		
 		global $woocommerce;
-		if(is_ajax() && isset($_POST['action']) && $_POST['action'] == 'woocommerce_update_order_review'){
+		if(isset($_POST['action']) && $_POST['action'] == 'woocommerce_update_order_review'){
 			$customer_detail = $_POST;
 		}else{
 			$customer_detail = WC()->session->get('customer');
