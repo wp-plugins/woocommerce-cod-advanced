@@ -40,6 +40,11 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 
 == Changelog ==
 
+= 1.0.7 =
+* Added New COD icon for checkout page
+* added option to show/hide COD icon from settings.
+
+
 = 1.0.6 =
 * PHP syntax  - Error SOLVED
 

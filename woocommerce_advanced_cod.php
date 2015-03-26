@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.0.6
+Version: 1.0.7
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -22,6 +22,7 @@ class WooCommerceCODAdvanced{
 		add_filter('woocommerce_available_payment_gateways',array($this,'adv_cod_filter_gateways'));
 		add_action( 'woocommerce_calculate_totals', array($this,'adv_cod_calculate_totals'), 9, 1 );
 		add_action( 'wp_head', array($this,'adv_cod_wp_header'), 99 );
+		add_filter( 'woocommerce_gateway_icon', array($this,'adv_cod_gateway_icon'),9,2);
 		
 		global $woocommerce;
 		if(isset($_POST['action']) && $_POST['action'] == 'woocommerce_update_order_review'){
@@ -58,6 +59,14 @@ class WooCommerceCODAdvanced{
 							'title'			=> __('WooCommerce Advanced COD Plugin Settings','askoracle'),
 							'type'			=> 'title',
 							'default'  		=> 'no',
+						);
+						
+		$form_fields['cod_icon'] = array(
+							'title'			=> __('Display icon on checkout page?','askoracle'),
+							'type'			=> 'checkbox',
+							'description'	=> __('Select if you want to display COD icon on checkout page.','askoracle'),
+							'default'		=> '0',
+							'desc_tip'		=> '0',
 						);
 						
 		$form_fields['min_amount'] = array(
@@ -364,7 +373,21 @@ class WooCommerceCODAdvanced{
 		
 		return $gateways;
 	}
-
+	
+	/****************************
+	COD ICON
+	****************************/
+	function adv_cod_gateway_icon($icon_html,$id)
+	{
+		$settings = get_option('woocommerce_cod_settings');		
+		$cod_icon = $settings['cod_icon'];
+		if($id=='cod' && $cod_icon=='yes'){
+			$image =  plugins_url('images/cod-icon.png', __FILE__);
+			$icon_html = '<img src="'.$image.'" alt="" />';
+		}
+		return $icon_html;
+	}
+	
 	/****************************
 	COD calculate Totals
 	****************************/
