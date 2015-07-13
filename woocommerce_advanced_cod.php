@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.0.7
+Version: 1.0.9
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -245,6 +245,15 @@ class WooCommerceCODAdvanced{
 								'exclude'  => __('Hide COD if user is from above postal code', 'askoracle' )
 							),	
 						);
+		
+		$form_fields['hide_virtual_product'] = array(
+							'title'			=> __('Hide for virtual and downloadable products?','askoracle'),
+							'type'			=> 'checkbox',
+							'description'	=> __('Select to hide COD option for virtual and downloadable products on checkout page.','askoracle'),
+							'default'		=> '0',
+							'desc_tip'		=> '0',
+						);
+						
 						
 		return $form_fields;
 	}
@@ -260,19 +269,34 @@ class WooCommerceCODAdvanced{
 		$cod_enabled=1;
 		global $wpdb,$woocommerce;
 		$settings = get_option('woocommerce_cod_settings');
-		if(isset($settings) && $settings['min_amount']){$min_cod_amount = $settings['min_amount'];}
-		if(isset($settings) && $settings['max_amount']){$max_cod_amount = $settings['max_amount'];}
-		
-		$exclude_country = $settings['country'];
-		$in_ex_country = $settings['in_ex_country'];
-		$exclude_states = $settings['states'];
-		$in_ex_states = $settings['in_ex_states'];
-		$exclude_city = trim($settings['city']);
-		$in_ex_city = $settings['in_ex_city'];
-		$cod_pincodes = trim($settings['cod_pincodes']);
-		$in_ex_pincode = $settings['in_ex_pincode'];
-		$exclude_cats = $settings['exclude_cats'];		   
-		
+		if(isset($settings) && $settings)
+		{
+			$min_cod_amount = $settings['min_amount'];
+			$max_cod_amount = $settings['max_amount'];			
+			$exclude_country = $settings['country'];
+			$in_ex_country = $settings['in_ex_country'];
+			$exclude_states = $settings['states'];
+			$in_ex_states = $settings['in_ex_states'];
+			$exclude_city = trim($settings['city']);
+			$in_ex_city = $settings['in_ex_city'];
+			$cod_pincodes = trim($settings['cod_pincodes']);
+			$in_ex_pincode = $settings['in_ex_pincode'];
+			$exclude_cats = $settings['exclude_cats'];
+			$hide_virtual_product = $settings['hide_virtual_product'];
+		}else{
+			$min_cod_amount = 0;
+			$max_cod_amount = 0;
+			$exclude_country = '';
+			$in_ex_country = '';
+			$exclude_states = '';
+			$in_ex_states = '';
+			$exclude_city = '';
+			$in_ex_city = '';
+			$cod_pincodes = '';
+			$in_ex_pincode = '';
+			$exclude_cats = array();
+			$hide_virtual_product = 0;
+		}
 		if($exclude_cats){
 			$exclude_cats_str = implode(',',$exclude_cats);
 			$exclude_post_ids = $wpdb->get_col("select p.ID from $wpdb->posts p join $wpdb->term_relationships tr on tr.object_id=p.ID join $wpdb->term_taxonomy tt on tt.term_taxonomy_id=tr.term_taxonomy_id where tt.term_id in ($exclude_cats_str) and tt.taxonomy='product_cat' and p.post_type='product' and p.post_status='publish'");
@@ -371,6 +395,18 @@ class WooCommerceCODAdvanced{
 			$cod_enabled=0;
 		}
 		
+		if($hide_virtual_product=='yes'){
+			$the_cart_contents = $woocommerce->cart->cart_contents;
+			foreach($the_cart_contents as $key => $prdarr)
+			{
+				$downloadable = get_post_meta($prdarr['product_id'],'_downloadable',true);
+				if($prdarr['data']->virtual=='yes' || $downloadable=='yes'){
+					unset($gateways['cod']);
+					$cod_enabled=0;
+					break;
+				}
+			}
+		}
 		return $gateways;
 	}
 	

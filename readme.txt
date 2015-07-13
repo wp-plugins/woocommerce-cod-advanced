@@ -24,6 +24,7 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 <li>Country to restrict the COD.</li>
 <li>States/Provinces to restrict the COD.</li>
 <li>City to restrict the COD.</li>
+<li>Virtual and Digital products type to restrict the COD.</li>
 </ul>
 
 
@@ -39,6 +40,12 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 
 
 == Changelog ==
+
+= 1.0.9 =
+* New option added to disable the COD payment option for virtual or digital product selected in the cart.
+
+= 1.0.8 =
+* Display warnings - Solved.
 
 = 1.0.7 =
 * Added New COD icon for checkout page
