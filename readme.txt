@@ -43,6 +43,7 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 
 = 1.0.9 =
 * New option added to disable the COD payment option for virtual or digital product selected in the cart.
+* Display message for COD disabled condition is applied. It will display the message as per you have inserted in the input box.
 
 = 1.0.8 =
 * Display warnings - Solved.

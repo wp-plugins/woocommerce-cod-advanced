@@ -60,6 +60,14 @@ class WooCommerceCODAdvanced{
 							'type'			=> 'title',
 							'default'  		=> 'no',
 						);
+		
+		$form_fields['disable_cod_adv'] = array(
+							'title'			=> __('Disable Advanced COD?','askoracle'),
+							'type'			=> 'checkbox',
+							'description'	=> __('Select if you want to disable advanced COD plugin settings.','askoracle'),
+							'default'		=> '0',
+							'desc_tip'		=> '0',
+						);
 						
 		$form_fields['cod_icon'] = array(
 							'title'			=> __('Display icon on checkout page?','askoracle'),
@@ -253,7 +261,14 @@ class WooCommerceCODAdvanced{
 							'default'		=> '0',
 							'desc_tip'		=> '0',
 						);
-						
+		
+		$form_fields['hide_virtual_product_msg'] = array(
+							'title'			=> __('COD hide message','askoracle'),
+							'type'			=> 'textarea',
+							'description'	=> __('Message will be display if COD is disabled because of advanced COD settings on checkout page.','askoracle'),
+							'default'		=> '',
+							'desc_tip'		=> '0',
+						);						
 						
 		return $form_fields;
 	}
@@ -267,8 +282,10 @@ class WooCommerceCODAdvanced{
 		$min_cod_amount = 0;
 		$max_cod_amount = 0;
 		$cod_enabled=1;
-		global $wpdb,$woocommerce;
+		global $wpdb,$woocommerce,$hide_virtual_product_msg;
 		$settings = get_option('woocommerce_cod_settings');
+		
+		if($settings['disable_cod_adv'] && $settings['disable_cod_adv']=='yes'){return $gateways;}
 		if(isset($settings) && $settings)
 		{
 			$min_cod_amount = $settings['min_amount'];
@@ -283,6 +300,7 @@ class WooCommerceCODAdvanced{
 			$in_ex_pincode = $settings['in_ex_pincode'];
 			$exclude_cats = $settings['exclude_cats'];
 			$hide_virtual_product = $settings['hide_virtual_product'];
+			$hide_virtual_product_msg = trim($settings['hide_virtual_product_msg']);
 		}else{
 			$min_cod_amount = 0;
 			$max_cod_amount = 0;
@@ -296,6 +314,7 @@ class WooCommerceCODAdvanced{
 			$in_ex_pincode = '';
 			$exclude_cats = array();
 			$hide_virtual_product = 0;
+			$hide_virtual_product_msg = '';
 		}
 		if($exclude_cats){
 			$exclude_cats_str = implode(',',$exclude_cats);
@@ -407,6 +426,19 @@ class WooCommerceCODAdvanced{
 				}
 			}
 		}
+		if($cod_enabled==0 && $hide_virtual_product_msg!=''){
+			
+			add_action('woocommerce_checkout_before_customer_details','woocommerce_checkout_after_order_review_fun1');
+			//add_action('woocommerce_checkout_after_customer_details','woocommerce_checkout_after_order_review_fun1');
+			//add_action('woocommerce_checkout_before_order_review','woocommerce_checkout_after_order_review_fun1');
+			if(!function_exists('woocommerce_checkout_after_order_review_fun1')){
+				function woocommerce_checkout_after_order_review_fun1(){
+					global $hide_virtual_product_msg;
+					echo '<div class="woocommerce-info">'.$hide_virtual_product_msg.'</div>';
+				}
+			}
+		
+		}
 		return $gateways;
 	}
 	
@@ -427,13 +459,15 @@ class WooCommerceCODAdvanced{
 	/****************************
 	COD calculate Totals
 	****************************/
-	public function adv_cod_calculate_totals( $totals ) {
-		
+	public function adv_cod_calculate_totals( $totals ) {		
 		$available_gateways = WC()->payment_gateways->get_available_payment_gateways();
 		$current_gateway = WC()->session->chosen_payment_method;
 		
 		if($current_gateway=='cod'){
 			$current_gateways_detail = $available_gateways[$current_gateway];
+			$disable_cod_adv = $current_gateways_detail->settings['disable_cod_adv'];
+			if($disable_cod_adv && $disable_cod_adv=='yes'){return $totals;}
+			
 			$current_gateway_id = $current_gateways_detail->id;
 			$current_gateway_title = $current_gateways_detail->title;
 			$extra_charges_id = 'woocommerce_'.$current_gateway_id.'_extra_charges';
