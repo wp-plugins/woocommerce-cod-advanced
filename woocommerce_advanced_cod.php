@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.0.9
+Version: 1.0.10
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -428,16 +428,16 @@ class WooCommerceCODAdvanced{
 		}
 		if($cod_enabled==0 && $hide_virtual_product_msg!=''){
 			
-			add_action('woocommerce_checkout_before_customer_details','woocommerce_checkout_after_order_review_fun1');
-			//add_action('woocommerce_checkout_after_customer_details','woocommerce_checkout_after_order_review_fun1');
-			//add_action('woocommerce_checkout_before_order_review','woocommerce_checkout_after_order_review_fun1');
-			if(!function_exists('woocommerce_checkout_after_order_review_fun1')){
-				function woocommerce_checkout_after_order_review_fun1(){
-					global $hide_virtual_product_msg;
-					echo '<div class="woocommerce-info">'.$hide_virtual_product_msg.'</div>';
+			add_filter('woocommerce_update_order_review_fragments', 'woocommerce_checkout_after_order_review_filter');
+			if(!function_exists('woocommerce_checkout_after_order_review_filter')){
+				function woocommerce_checkout_after_order_review_filter($vals)
+				{
+					global $cod_enabled,$hide_virtual_product_msg;
+					$message = '<div class="woocommerce-info">'.$hide_virtual_product_msg.'</div>';
+					$vals['.woocommerce-checkout-payment'] = str_replace('<ul class="payment_methods methods">',$message.'<ul class="payment_methods methods">',$vals['.woocommerce-checkout-payment']);
+					return $vals;
 				}
-			}
-		
+			}		
 		}
 		return $gateways;
 	}

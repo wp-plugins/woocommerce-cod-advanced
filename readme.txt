@@ -41,24 +41,26 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 
 == Changelog ==
 
-= 1.0.9 =
-* New option added to disable the COD payment option for virtual or digital product selected in the cart.
-* Display message for COD disabled condition is applied. It will display the message as per you have inserted in the input box.
 
-= 1.0.8 =
-* Display warnings - Solved.
-
-= 1.0.7 =
-* Added New COD icon for checkout page
-* added option to show/hide COD icon from settings.
+= 1.0.0 =
+* Fresh Public Release. 
 
 
-= 1.0.6 =
-* PHP syntax  - Error SOLVED
+= 1.0.1 =
+* Postal/Pin code option added to display COD on checkout page.
+ -- so you should add the pin code and matched pin code user will not display the COD on checkout page.
+* Exclude Product Category to hide COD if excluded category product is in your cart.
 
 
-= 1.0.5 =
-* Checkout page - on change of country, state , city or pincode -- COD advanced plugin condition not working - Error SOLVED
+= 1.0.2 =
+* Hide COD for maximum cart total amount - Option added.
+
+
+= 1.0.3 =
+* Country to restrict the COD.
+* States/Provinces to restrict the COD.
+* City to restrict the COD.
+
 
 
 = 1.0.4 =
@@ -67,18 +69,28 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 * Display the COD for specific cities or other cities option like (include cities or exclude cities).
 * Display the COD for specific postal code or other postal code option like (include postal code or exclude postal code).
 
-= 1.0.3 =
-* Country to restrict the COD.
-* States/Provinces to restrict the COD.
-* City to restrict the COD.
 
-= 1.0.2 =
-* Hide COD for maximum cart total amount - Option added.
+= 1.0.5 =
+* Checkout page - on change of country, state , city or pincode -- COD advanced plugin condition not working - Error SOLVED
 
-= 1.0.1 =
-* Postal/Pin code option added to display COD on checkout page.
- -- so you should add the pin code and matched pin code user will not display the COD on checkout page.
-* Exclude Product Category to hide COD if excluded category product is in your cart.
 
-= 1.0.0 =
-* Fresh Public Release. 
+= 1.0.6 =
+* PHP syntax  - Error SOLVED
+
+
+= 1.0.7 =
+* Added New COD icon for checkout page
+* added option to show/hide COD icon from settings.
+
+
+= 1.0.8 =
+* Display warnings - Solved.
+
+
+= 1.0.9 =
+* New option added to disable the COD payment option for virtual or digital product selected in the cart.
+* Display message for COD disabled condition is applied. It will display the message as per you have inserted in the input box.
+
+
+= 1.0.10 =
+* On checkout pgae if pincode/address not match with your shopping and cod is hidden, message display.
