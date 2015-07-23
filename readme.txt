@@ -94,3 +94,4 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 
 = 1.0.10 =
 * On checkout pgae if pincode/address not match with your shopping and cod is hidden, message display.
+* Pincode checking problem - Solved.

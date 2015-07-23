@@ -393,10 +393,10 @@ class WooCommerceCODAdvanced{
 			}else{
 				$shipping_postcode = trim($customer_detail['shipping_postcode']);
 			}			
-			if($shipping_postcode && $in_ex_city=='include' && !in_array($shipping_postcode,$cod_pincodes_arr)){
+			if($shipping_postcode && $in_ex_pincode=='include' && !in_array($shipping_postcode,$cod_pincodes_arr)){
 				unset($gateways['cod']);
 				$cod_enabled=0;
-			}elseif($shipping_postcode && $in_ex_city=='exclude' && in_array($shipping_postcode,$cod_pincodes_arr)){
+			}elseif($shipping_postcode && $in_ex_pincode=='exclude' && in_array($shipping_postcode,$cod_pincodes_arr)){
 				unset($gateways['cod']);
 				$cod_enabled=0;
 			}
