@@ -2,7 +2,7 @@
 Contributors: aheadzen
 Tags: woocommerce, cod, cash on delivery,cod advanced, minimum amount
 Requires at least : 3.0.0
-Tested up to: 4.0
+Tested up to: 4.3
 Stable tag: 1.0.0.0
 License: GPLv2 or later
 License URI: http://www.gnu.org/licenses/gpl-2.0.html
@@ -95,3 +95,9 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 = 1.0.10 =
 * On checkout pgae if pincode/address not match with your shopping and cod is hidden, message display.
 * Pincode checking problem - Solved.
+
+= 1.2.0 =
+* For wooCommerce version : 2.4.5, some error on address change for shipping. Now Solved.
+
+= 1.2.1 =
+* Added COD extra charge display for order reivew and emails.

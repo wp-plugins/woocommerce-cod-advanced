@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.0.10
+Version: 1.2.1
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -20,9 +20,11 @@ class WooCommerceCODAdvanced{
 		$this->current_gateway_extra_charges_type_value = '';
 		add_action('woocommerce_settings_api_form_fields_cod',array($this,'adv_cod_woocommerce_update_options_payment_gateways_cod_fun'));
 		add_filter('woocommerce_available_payment_gateways',array($this,'adv_cod_filter_gateways'));
-		add_action( 'woocommerce_calculate_totals', array($this,'adv_cod_calculate_totals'), 9, 1 );
+		//add_action( 'woocommerce_calculate_totals', array($this,'adv_cod_calculate_totals'), 9, 1 );
 		add_action( 'wp_head', array($this,'adv_cod_wp_header'), 99 );
 		add_filter( 'woocommerce_gateway_icon', array($this,'adv_cod_gateway_icon'),9,2);
+		
+		add_action( 'woocommerce_cart_calculate_fees', array( &$this, 'woo_add_extra_fee') );
 		
 		global $woocommerce;
 		if(isset($_POST['action']) && $_POST['action'] == 'woocommerce_update_order_review'){
@@ -331,7 +333,7 @@ class WooCommerceCODAdvanced{
 		}
 		
 		global $woocommerce;
-		if(isset($_POST['action']) && $_POST['action'] == 'woocommerce_update_order_review'){
+		if($_POST['action'] == 'woocommerce_update_order_review' || $_GET['wc-ajax']=='update_order_review'){
 			$customer_detail = $_POST;
 		}else{
 			$customer_detail = WC()->session->get('customer');
@@ -392,7 +394,7 @@ class WooCommerceCODAdvanced{
 				$shipping_postcode = trim($customer_detail['s_postcode']);
 			}else{
 				$shipping_postcode = trim($customer_detail['shipping_postcode']);
-			}			
+			}
 			if($shipping_postcode && $in_ex_pincode=='include' && !in_array($shipping_postcode,$cod_pincodes_arr)){
 				unset($gateways['cod']);
 				$cod_enabled=0;
@@ -462,7 +464,6 @@ class WooCommerceCODAdvanced{
 	public function adv_cod_calculate_totals( $totals ) {		
 		$available_gateways = WC()->payment_gateways->get_available_payment_gateways();
 		$current_gateway = WC()->session->chosen_payment_method;
-		
 		if($current_gateway=='cod'){
 			$current_gateways_detail = $available_gateways[$current_gateway];
 			$disable_cod_adv = $current_gateways_detail->settings['disable_cod_adv'];
@@ -515,6 +516,55 @@ class WooCommerceCODAdvanced{
 		 }?></td>
 	 </tr>
 	 <?php
+	}
+	
+	public function woo_add_extra_fee() {
+		global $woocommerce;
+		$available_gateways = WC()->payment_gateways->get_available_payment_gateways();
+		$current_gateway = WC()->session->chosen_payment_method;
+		if($current_gateway=='cod'){
+			$current_gateways_detail = $available_gateways[$current_gateway];
+			
+			$disable_cod_adv = $current_gateways_detail->settings['disable_cod_adv'];
+			if($disable_cod_adv && $disable_cod_adv=='yes'){return $totals;}
+			
+			$current_gateway_id = $current_gateways_detail->id;
+			$current_gateway_title = $current_gateways_detail->title;
+			$extra_charges_id = 'woocommerce_'.$current_gateway_id.'_extra_charges';
+			$extra_charges_type = $extra_charges_id.'_type';
+			$extra_charge_min_amount = (float)$current_gateways_detail->settings['extra_charge_min_amount'];
+			$extra_charges = (float)$current_gateways_detail->settings['extra_charges'];
+			$extra_charges_type = $current_gateways_detail->settings['extra_charges_type'];
+			$roundup_type = $current_gateways_detail->settings['roundup_type'];
+			
+			//get cart total
+			$total = $woocommerce->cart->subtotal;
+		
+			if($extra_charges && $extra_charge_min_amount>=$total){
+				if($extra_charges_type=="percentage"){
+					$total = $total + round(($total*$extra_charges)/100,2);
+				}else{
+					$total = $total + $extra_charges;
+				}
+				if($roundup_type>0)
+				{
+					$extra_add = $roundup_type -($total%$roundup_type);
+					$total = $total+$extra_add;
+					$extra_charges = $extra_charges+$extra_add;					
+				}
+				
+				$this->current_extra_charge_min_amount = $extra_charge_min_amount;
+				$this->current_gateway_title = $current_gateway_title;
+				$this->current_gateway_extra_charges = $extra_charges;				
+				$this->current_gateway_extra_charges_type_value = $extra_charges_type;
+				$extra_fee_option_taxable = 0;
+				//if cart total less or equal than $min_order, add extra fee
+				//$extra_fee_option_label = sprintf(__('%s Extra Charges <small>for purchase less than %s</small>','askoracle'),$this->current_gateway_title,woocommerce_price($this->current_extra_charge_min_amount));
+				$extra_fee_option_label = 'COD Charges';
+				$woocommerce->cart->add_fee($extra_fee_option_label, $extra_charges, $extra_fee_option_taxable );				
+			}
+		}
+		
 	}
 	
 }
