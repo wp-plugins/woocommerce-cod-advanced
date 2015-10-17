@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.2.1
+Version: 1.2.3
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -540,7 +540,7 @@ class WooCommerceCODAdvanced{
 			//get cart total
 			$total = $woocommerce->cart->subtotal;
 		
-			if($extra_charges && $extra_charge_min_amount>=$total){
+			if($extra_charges){
 				if($extra_charges_type=="percentage"){
 					$total = $total + round(($total*$extra_charges)/100,2);
 				}else{
@@ -553,15 +553,17 @@ class WooCommerceCODAdvanced{
 					$extra_charges = $extra_charges+$extra_add;					
 				}
 				
-				$this->current_extra_charge_min_amount = $extra_charge_min_amount;
-				$this->current_gateway_title = $current_gateway_title;
-				$this->current_gateway_extra_charges = $extra_charges;				
-				$this->current_gateway_extra_charges_type_value = $extra_charges_type;
+				//$this->current_extra_charge_min_amount = $extra_charge_min_amount;
+				//$this->current_gateway_title = $current_gateway_title;
+				//$this->current_gateway_extra_charges = $extra_charges;				
+				//$this->current_gateway_extra_charges_type_value = $extra_charges_type;
 				$extra_fee_option_taxable = 0;
 				//if cart total less or equal than $min_order, add extra fee
 				//$extra_fee_option_label = sprintf(__('%s Extra Charges <small>for purchase less than %s</small>','askoracle'),$this->current_gateway_title,woocommerce_price($this->current_extra_charge_min_amount));
 				$extra_fee_option_label = 'COD Charges';
-				$woocommerce->cart->add_fee($extra_fee_option_label, $extra_charges, $extra_fee_option_taxable );				
+				if($extra_charge_min_amount>=$total || empty($extra_charge_min_amount)){
+					$woocommerce->cart->add_fee($extra_fee_option_label, $extra_charges, $extra_fee_option_taxable );				
+				}
 			}
 		}
 		
