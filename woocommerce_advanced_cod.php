@@ -4,7 +4,7 @@ Plugin Name: WooCommerce COD Advanced
 Plugin URI: http://aheadzen.com/
 Description: Cash On Delivery Advanced - Added advanced options like hide COD payment while checkout if minimum amount, enable extra charges if minimum amount.
 Author: Aheadzen Team 
-Version: 1.2.3
+Version: 1.2.4
 Author URI: http://aheadzen.com/
 
 Copyright: © 2014-2015 ASK-ORACLE.COM
@@ -101,14 +101,22 @@ class WooCommerceCODAdvanced{
 							'description'	=> __('Maximum cart amount to apply extra charge as per "Extra charges" settings.','askoracle'),
 							'default'		=> '0',
 							'desc_tip'		=> '0',
-						);				
+						);
 						
 		$form_fields['extra_charges'] = array(
 							'title'			=> __('Extra charges','askoracle'),
 							'type'			=> 'text',
-							'description'	=> __('Extra charges applied on checkout while select the payment method','askoracle'),
+							'description'	=> __('Extra charges applied on checkout while select COD payment method','askoracle'),
 							'default'		=> '0',
 							'desc_tip'		=> '0',
+						);
+						
+		$form_fields['extra_charges_msg'] = array(
+							'title'			=> __('Message for extra charges','askoracle'),
+							'type'			=> 'text',
+							'description'	=> __('Message for extra charges while applied on checkout','askoracle'),
+							'default'		=> 'COD Charges',
+							'desc_tip'		=> '',
 						);
 						
 		$form_fields['extra_charges_type'] = array(
@@ -536,6 +544,8 @@ class WooCommerceCODAdvanced{
 			$extra_charges = (float)$current_gateways_detail->settings['extra_charges'];
 			$extra_charges_type = $current_gateways_detail->settings['extra_charges_type'];
 			$roundup_type = $current_gateways_detail->settings['roundup_type'];
+			$extra_charges_msg = $current_gateways_detail->settings['extra_charges_msg'];
+			if(!$extra_charges_msg){$extra_charges_msg = 'COD Charges';}
 			
 			//get cart total
 			$total = $woocommerce->cart->subtotal;
@@ -560,7 +570,7 @@ class WooCommerceCODAdvanced{
 				$extra_fee_option_taxable = 0;
 				//if cart total less or equal than $min_order, add extra fee
 				//$extra_fee_option_label = sprintf(__('%s Extra Charges <small>for purchase less than %s</small>','askoracle'),$this->current_gateway_title,woocommerce_price($this->current_extra_charge_min_amount));
-				$extra_fee_option_label = 'COD Charges';
+				$extra_fee_option_label = $extra_charges_msg;
 				if($extra_charge_min_amount>=$total || empty($extra_charge_min_amount)){
 					$woocommerce->cart->add_fee($extra_fee_option_label, $extra_charges, $extra_fee_option_taxable );				
 				}

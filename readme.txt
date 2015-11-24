@@ -105,3 +105,6 @@ Cash On Delivery - advanced options like hide COD payment while checkout if mini
 
 = 1.2.3 =
 * Added COD extra charge display for order reivew and emails.
+
+= 1.2.4 =
+* Added COD extra charge Message so user can change message as per they want.
